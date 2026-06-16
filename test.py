@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,9 +8,13 @@ from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 import textwrap
 
-#load data
-cand_kipa = pd.read_csv('cand_kipa.csv')
-tx_ki = pd.read_csv('tx_ki.csv')
+# Load data from a local data directory
+DATA_DIR = Path(os.getenv('DATA_DIR', 'data'))
+cand_kipa_path = DATA_DIR / 'cand_kipa.csv'
+tx_ki_path = DATA_DIR / 'tx_ki.csv'
+
+cand_kipa = pd.read_csv(cand_kipa_path)
+tx_ki = pd.read_csv(tx_ki_path)
 
 #Filter out candidates who received living donations
 living_donor_ids = tx_ki[tx_ki['DON_TY'] == 'L']['PX_ID'].unique()
