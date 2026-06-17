@@ -72,6 +72,75 @@ cand_filtered['Waitlist_Subcategory'] = np.select(
     default="Currently on waitlist"
 )
 
+# missing values
+
+target_cols = ['CAN_RACE', 'CAN_GENDER', 'CAN_EDUCATION', 'CAN_AGE_AT_LISTING', 'CAN_CITIZENSHIP', 'CAN_PRIMARY_PAY']
+
+null_counts = cand_filtered[target_cols].isnull().sum()
+null_percentages = (null_counts / len(cand_filtered)) * 100
+
+null_table = pd.DataFrame({
+    'Column': null_counts.index,
+    'Missing_Count': null_counts,
+    'Missing_Percentage': null_percentages
+})
+
+# ==========================================
+# --- Data Cleaning: Demographics---
+# ==========================================
+
+# ---helper function to build tables---
+
+def format_table(df, col):
+    counts = df[col].value_counts()
+    frequencies = counts / len(df) * 100
+    return pd.DataFrame({
+        "Characteristics": counts.index,
+        "Frequency": frequencies.values
+
+    })
+
+# Demographics - Race
+
+race_map = {
+    8 : "White",
+    16 : "Black",
+    32 : "American Indian",
+    64 : "Asian",
+    128 : "Pacific Islander",
+    256 : "Middle Eastern",
+    512 : "Indian",
+    2000 : "Hispanic",
+    1024 : "Unknown",
+    '' : "Missing"
+}
+
+cand_filtered['Race'] = cand_filtered['CAN_RACE'].apply(
+    lambda x: race_map.get(x, "Multi-Racial")
+)
+
+race_counts = cand_filtered['Race'].value_counts()
+
+# Demographics - Gender
+
+gender_map = {
+    'M': "Male",
+    'F': "Female",
+}
+
+cand_filtered['Gender'] = cand_filtered['CAN_GENDER'].apply(
+    lambda x: gender_map.get(x, "Unknown")
+)
+
+gender_counts = cand_filtered['Gender'].value_counts()
+
+table = pd.crosstab(
+    cand_filtered['Gender'],
+    cand_filtered['Waitlist_Category'],
+    normalize='columns'
+) *100
+
+
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -136,4 +205,41 @@ plt.ylabel('Number of Candidates', fontsize=12)
 plt.tight_layout()
 
 # Display the charts
+plt.show()
+
+
+# ==========================================
+# --- Chart 3: Demographics ---
+# ==========================================
+
+# Gender distribution
+plt.figure(figsize=(10, 6))
+ax3 = sns.barplot(x=gender_counts.index, y=gender_counts.values, palette="Accent")
+
+for container in ax3.containers:
+    ax3.bar_label(container, fmt='{:,.0f}', padding=3, fontsize=11)
+
+plt.title('Distribution of Candidates by Gender', fontsize=14, pad=15)
+plt.xlabel('Gender', fontsize=12)
+plt.ylabel('Number of Candidates', fontsize=12)
+plt.show()
+
+# Race distribution
+plt.figure(figsize=(10, 6))
+ax4 = sns.barplot(x=race_counts.index, y=race_counts.values, palette="gist_earth")
+
+for container in ax4.containers:
+    ax4.bar_label(container, fmt='{:,.0f}', padding=3, fontsize=11)
+
+plt.title('Distribution of Candidates by Race', fontsize=14, pad=15)
+plt.xlabel('Race', fontsize=12)
+plt.ylabel('Number of Candidates', fontsize=12)
+plt.show()
+
+# Age distribution
+plt.figure(figsize=(10, 6))
+plt.hist(cand_filtered['CAN_AGE_AT_LISTING'], bins=20, color='skyblue', edgecolor='black')
+plt.title('Distribution of Candidates by Age', fontsize=14, pad=15)
+plt.xlabel('Age', fontsize=12)
+plt.ylabel('Number of Candidates', fontsize=12)
 plt.show()
